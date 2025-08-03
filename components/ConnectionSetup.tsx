@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,r
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   Modal,
@@ -21,10 +21,8 @@ interface ConnectionSetupProps {
 
 export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetupProps) {
   const [baseUrl, setBaseUrl] = useState('https://ctoadmin.itiltd.in/cams/api');
-  const [authType, setAuthType] = useState<'none' | 'bearer' | 'api-key' | 'basic'>('none');
+  const [authType, setAuthType] = useState<'none' | 'bearer' | 'api-key'>('none');
   const [authKey, setAuthKey] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
 
@@ -33,24 +31,26 @@ export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetup
     setConnectionStatus('testing');
 
     try {
-      // Configure authentication
-      const authConfig =
-        authType === 'basic'
-          ? { type: 'basic', username, password }
-          : authType !== 'none'
-          ? { type: authType, key: authKey }
-          : undefined;
-
+      // Update API configuration
       enterpriseApi.updateConfig({
         baseUrl,
-        authentication: authConfig,
+        authentication: authType !== 'none' ? {
+          type: authType,
+          key: authKey,
+        } : undefined,
       });
 
+      // Test the connection
       const response = await enterpriseApi.testConnection();
-
+      
       if (response.success) {
         setConnectionStatus('success');
-        const initSuccess = await enterpriseApi.initialize(baseUrl, authConfig);
+        // Initialize the API with the new configuration
+        const initSuccess = await enterpriseApi.initialize(baseUrl, {
+          type: authType,
+          key: authKey,
+        });
+        
         if (initSuccess) {
           Alert.alert('Success', 'Connection established successfully!');
           onSuccess();
@@ -72,24 +72,37 @@ export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetup
 
   const getStatusIcon = () => {
     switch (connectionStatus) {
-      case 'testing': return <LoadingSpinner size={20} />;
-      case 'success': return <Check size={20} color="#059669" />;
-      case 'error': return <AlertCircle size={20} color="#DC2626" />;
-      default: return <Wifi size={20} color="#6B7280" />;
+      case 'testing':
+        return <LoadingSpinner size={20} />;
+      case 'success':
+        return <Check size={20} color="#059669" />;
+      case 'error':
+        return <AlertCircle size={20} color="#DC2626" />;
+      default:
+        return <Wifi size={20} color="#6B7280" />;
     }
   };
 
   const getStatusColor = () => {
     switch (connectionStatus) {
-      case 'success': return '#059669';
-      case 'error': return '#DC2626';
-      case 'testing': return '#D97706';
-      default: return '#6B7280';
+      case 'success':
+        return '#059669';
+      case 'error':
+        return '#DC2626';
+      case 'testing':
+        return '#D97706';
+      default:
+        return '#6B7280';
     }
   };
 
   return (
-    <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={onClose}
+    >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
@@ -105,7 +118,9 @@ export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetup
           <ScrollView style={styles.modalBody}>
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Server Configuration</Text>
-              <Text style={styles.sectionDescription}>Configure your CAMS API server connection</Text>
+              <Text style={styles.sectionDescription}>
+                Configure your CAMS API server connection
+              </Text>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Base URL</Text>
@@ -119,12 +134,15 @@ export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetup
                     autoCorrect={false}
                   />
                 </View>
+                <Text style={styles.inputHint}>
+                  Enter your CAMS API server base URL
+                </Text>
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Authentication Type</Text>
                 <View style={styles.authTypeContainer}>
-                  {(['none', 'bearer', 'api-key', 'basic'] as const).map((type) => (
+                  {(['none', 'bearer', 'api-key'] as const).map((type) => (
                     <TouchableOpacity
                       key={type}
                       style={[
@@ -139,50 +157,14 @@ export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetup
                           authType === type && styles.authTypeTextActive,
                         ]}
                       >
-                        {type === 'none'
-                          ? 'None'
-                          : type === 'bearer'
-                          ? 'Bearer Token'
-                          : type === 'api-key'
-                          ? 'API Key'
-                          : 'Basic Auth'}
+                        {type === 'none' ? 'None' : type === 'bearer' ? 'Bearer Token' : 'API Key'}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               </View>
 
-              {authType === 'basic' && (
-                <>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Username</Text>
-                    <View style={styles.inputContainer}>
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Enter username"
-                        value={username}
-                        onChangeText={setUsername}
-                        autoCapitalize="none"
-                      />
-                    </View>
-                  </View>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Password</Text>
-                    <View style={styles.inputContainer}>
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Enter password"
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry
-                        autoCapitalize="none"
-                      />
-                    </View>
-                  </View>
-                </>
-              )}
-
-              {(authType === 'bearer' || authType === 'api-key') && (
+              {authType !== 'none' && (
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>
                     {authType === 'bearer' ? 'Bearer Token' : 'API Key'}
@@ -205,7 +187,9 @@ export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetup
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Connection Status</Text>
               <View style={styles.statusContainer}>
-                <View style={styles.statusIcon}>{getStatusIcon()}</View>
+                <View style={styles.statusIcon}>
+                  {getStatusIcon()}
+                </View>
                 <View style={styles.statusText}>
                   <Text style={[styles.statusTitle, { color: getStatusColor() }]}>
                     {connectionStatus === 'idle' && 'Ready to Connect'}
@@ -238,7 +222,7 @@ export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetup
                   </Text>
                 </View>
                 <Text style={styles.docDescription}>
-                  The API should return JSON data with attendance records including punch times,
+                  The API should return JSON data with attendance records including punch times, 
                   working hours, and status information.
                 </Text>
               </View>
@@ -255,7 +239,7 @@ export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetup
                 {isConnecting ? 'Testing...' : 'Test Connection'}
               </Text>
             </TouchableOpacity>
-
+            
             <TouchableOpacity
               style={[
                 styles.saveButton,
@@ -272,7 +256,6 @@ export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetup
     </Modal>
   );
 }
-
 
 const styles = StyleSheet.create({
   modalOverlay: {
