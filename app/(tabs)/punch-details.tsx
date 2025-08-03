@@ -8,17 +8,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { 
-  Calendar, 
-  Clock, 
-  TrendingUp, 
-  Filter,
-  Download,
-  RefreshCw,
-  LogOut,
-  User,
-  BarChart3
-} from 'lucide-react-native';
+import { Calendar, Clock, TrendingUp, Filter, Download, RefreshCw, LogOut, User, ChartBar as BarChart3 } from 'lucide-react-native';
 import { EmployeeLogin } from '../../components/EmployeeLogin';
 import { PunchDetailsCard } from '../../components/PunchDetailsCard';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
