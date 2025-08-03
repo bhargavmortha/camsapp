@@ -6,66 +6,54 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  RefreshControl,
 } from 'react-native';
 import { MapPin, Clock, Calendar, CircleCheck as CheckCircle, Circle as XCircle, CircleAlert as AlertCircle, Coffee } from 'lucide-react-native';
+import { useAttendanceData } from '../../hooks/useEnterpriseData';
+import { AttendanceData } from '../../services/enterpriseApi';
+import { StorageService } from '../../utils/storage';
 
 const { width } = Dimensions.get('window');
-
-interface AttendanceRecord {
-  date: string;
-  checkIn: string;
-  checkOut: string;
-  status: 'present' | 'absent' | 'late' | 'holiday' | 'leave';
-  workHours: string;
-  location: string;
-}
 
 export default function AttendanceScreen() {
   const [selectedMonth, setSelectedMonth] = useState('December 2024');
   const [viewType, setViewType] = useState<'calendar' | 'list'>('calendar');
+  const [currentUserId, setCurrentUserId] = useState('61008');
 
-  const attendanceData: AttendanceRecord[] = [
-    {
-      date: '2024-12-20',
-      checkIn: '09:15 AM',
-      checkOut: '06:30 PM',
-      status: 'late',
-      workHours: '9h 15m',
-      location: 'Office - Block A',
-    },
-    {
-      date: '2024-12-19',
-      checkIn: '09:00 AM',
-      checkOut: '06:00 PM',
-      status: 'present',
-      workHours: '9h 00m',
-      location: 'Office - Block A',
-    },
-    {
-      date: '2024-12-18',
-      checkIn: '09:05 AM',
-      checkOut: '06:15 PM',
-      status: 'present',
-      workHours: '9h 10m',
-      location: 'Office - Block A',
-    },
-    {
-      date: '2024-12-17',
-      checkIn: '-',
-      checkOut: '-',
-      status: 'leave',
-      workHours: '-',
-      location: '-',
-    },
-    {
-      date: '2024-12-16',
-      checkIn: '09:30 AM',
-      checkOut: '05:45 PM',
-      status: 'late',
-      workHours: '8h 15m',
-      location: 'Office - Block A',
-    },
-  ];
+  const { attendanceData, isLoading, error, refetch } = useAttendanceData(currentUserId);
+
+  React.useEffect(() => {
+    const loadUserId = async () => {
+      const userId = await StorageService.getItem<string>('current_user_id');
+      if (userId) {
+        setCurrentUserId(userId);
+      }
+    };
+    loadUserId();
+  }, []);
+
+  const convertToDisplayFormat = (record: AttendanceData) => {
+    const getStatus = () => {
+      if (record.DAYSTATUS === 'Present') return 'present';
+      if (record.DAYSTATUS === 'Absent') return 'absent';
+      if (record.LATEIN && record.LATEIN !== '0') return 'late';
+      if (record.DAYSTATUS === 'Holiday') return 'holiday';
+      if (record.DAYSTATUS === 'Leave') return 'leave';
+      return 'present';
+    };
+
+    return {
+      date: record.PROCESSDATE,
+      checkIn: record.PUNCH1_TIME || '-',
+      checkOut: record.PUNCH2_TIME || record.OUTPUNCH_TIME || '-',
+      status: getStatus(),
+      workHours: record['Working Time'] || record.WORKTIME_HHMM || '-',
+      location: 'Office - Block A', // This could be derived from integration_reference
+      overtime: record.OVERTIME_HHMM,
+      lateIn: record.LATEIN_HHMM,
+      earlyOut: record.EARLYOUT_HHMM,
+    };
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -118,6 +106,26 @@ export default function AttendanceScreen() {
     }
   };
 
+  const getAttendanceSummary = () => {
+    const summary = attendanceData.reduce(
+      (acc, record) => {
+        const status = convertToDisplayFormat(record).status;
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
+
+    return {
+      present: summary.present || 0,
+      late: summary.late || 0,
+      absent: summary.absent || 0,
+      leave: summary.leave || 0,
+    };
+  };
+
+  const summary = getAttendanceSummary();
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -153,83 +161,120 @@ export default function AttendanceScreen() {
       {/* Summary Cards */}
       <View style={styles.summaryContainer}>
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryValue}>18</Text>
+          <Text style={styles.summaryValue}>{summary.present}</Text>
           <Text style={styles.summaryLabel}>Present</Text>
         </View>
         <View style={styles.summaryCard}>
-          <Text style={[styles.summaryValue, { color: '#D97706' }]}>2</Text>
+          <Text style={[styles.summaryValue, { color: '#D97706' }]}>{summary.late}</Text>
           <Text style={styles.summaryLabel}>Late</Text>
         </View>
         <View style={styles.summaryCard}>
-          <Text style={[styles.summaryValue, { color: '#DC2626' }]}>1</Text>
+          <Text style={[styles.summaryValue, { color: '#DC2626' }]}>{summary.absent}</Text>
           <Text style={styles.summaryLabel}>Absent</Text>
         </View>
         <View style={styles.summaryCard}>
-          <Text style={[styles.summaryValue, { color: '#0D9488' }]}>3</Text>
+          <Text style={[styles.summaryValue, { color: '#0D9488' }]}>{summary.leave}</Text>
           <Text style={styles.summaryLabel}>Leave</Text>
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refetch}
+            tintColor="#2563EB"
+          />
+        }
+      >
         {viewType === 'list' ? (
           <View style={styles.listView}>
-            {attendanceData.map((record, index) => (
-              <View key={index} style={styles.attendanceCard}>
+            {attendanceData.map((record, index) => {
+              const displayRecord = convertToDisplayFormat(record);
+              
+              return (
+              <View key={record.UserID + record.PROCESSDATE} style={styles.attendanceCard}>
                 <View style={styles.attendanceHeader}>
                   <View style={styles.dateSection}>
                     <Text style={styles.attendanceDate}>
-                      {new Date(record.date).toLocaleDateString('en-US', { 
+                      {new Date(displayRecord.date).toLocaleDateString('en-US', { 
                         weekday: 'short',
                         month: 'short',
                         day: 'numeric'
                       })}
                     </Text>
-                    <View style={[styles.statusBadge, { backgroundColor: getStatusBg(record.status) }]}>
-                      {getStatusIcon(record.status)}
-                      <Text style={[styles.statusText, { color: getStatusColor(record.status) }]}>
-                        {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                    <View style={[styles.statusBadge, { backgroundColor: getStatusBg(displayRecord.status) }]}>
+                      {getStatusIcon(displayRecord.status)}
+                      <Text style={[styles.statusText, { color: getStatusColor(displayRecord.status) }]}>
+                        {displayRecord.status.charAt(0).toUpperCase() + displayRecord.status.slice(1)}
                       </Text>
                     </View>
                   </View>
                 </View>
 
-                {record.status !== 'leave' && record.status !== 'absent' && record.status !== 'holiday' && (
+                {displayRecord.status !== 'leave' && displayRecord.status !== 'absent' && displayRecord.status !== 'holiday' && (
                   <View style={styles.timeDetails}>
                     <View style={styles.timeItem}>
                       <Clock size={16} color="#6B7280" />
                       <Text style={styles.timeLabel}>In:</Text>
-                      <Text style={styles.timeValue}>{record.checkIn}</Text>
+                      <Text style={styles.timeValue}>{displayRecord.checkIn}</Text>
                     </View>
                     
                     <View style={styles.timeItem}>
                       <Clock size={16} color="#6B7280" />
                       <Text style={styles.timeLabel}>Out:</Text>
-                      <Text style={styles.timeValue}>{record.checkOut}</Text>
+                      <Text style={styles.timeValue}>{displayRecord.checkOut}</Text>
                     </View>
                     
                     <View style={styles.timeItem}>
                       <MapPin size={16} color="#6B7280" />
                       <Text style={styles.timeLabel}>Hours:</Text>
-                      <Text style={styles.timeValue}>{record.workHours}</Text>
+                      <Text style={styles.timeValue}>{displayRecord.workHours}</Text>
                     </View>
+
+                    {displayRecord.overtime && (
+                      <View style={styles.timeItem}>
+                        <Clock size={16} color="#D97706" />
+                        <Text style={styles.timeLabel}>OT:</Text>
+                        <Text style={[styles.timeValue, { color: '#D97706' }]}>{displayRecord.overtime}</Text>
+                      </View>
+                    )}
                   </View>
                 )}
 
-                {record.location !== '-' && (
+                {displayRecord.location !== '-' && (
                   <View style={styles.locationContainer}>
                     <MapPin size={14} color="#6B7280" />
-                    <Text style={styles.locationText}>{record.location}</Text>
+                    <Text style={styles.locationText}>{displayRecord.location}</Text>
                   </View>
                 )}
               </View>
-            ))}
+            );
+            })}
+
+            {attendanceData.length === 0 && !isLoading && (
+              <View style={styles.emptyState}>
+                <Clock size={48} color="#9CA3AF" />
+                <Text style={styles.emptyStateText}>No attendance data found</Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Pull down to refresh or check your connection
+                </Text>
+              </View>
+            )}
           </View>
         ) : (
           <View style={styles.calendarView}>
             <Text style={styles.calendarNote}>
               Calendar view will show a visual month calendar with color-coded attendance status
             </Text>
-            {/* Here you would integrate react-native-calendars or custom calendar component */}
+          </View>
+        )}
+
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
           </View>
         )}
       </ScrollView>
@@ -420,5 +465,35 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 24,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#6B7280',
+    marginTop: 16,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    padding: 16,
+    margin: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#DC2626',
+    textAlign: 'center',
   },
 });
