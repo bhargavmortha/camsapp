@@ -6,17 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { 
-  Clock, 
-  Calendar, 
-  Timer, 
-  AlertCircle, 
-  CheckCircle, 
-  Coffee,
-  ArrowRight,
-  ArrowLeft,
-  Pause
-} from 'lucide-react-native';
+import { Clock, Calendar, Timer, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Coffee, ArrowRight, ArrowLeft, Pause } from 'lucide-react-native';
 import { PunchData } from '../services/camsApi';
 
 interface PunchDetailsCardProps {
