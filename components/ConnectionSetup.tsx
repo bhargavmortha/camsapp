@@ -26,49 +26,52 @@ export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetup
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
 
-  const testConnection = async () => {
-    setIsConnecting(true);
-    setConnectionStatus('testing');
+const testConnection = async () => {
+  setIsConnecting(true);
+  setConnectionStatus('testing');
 
-    try {
-      // Update API configuration
-      enterpriseApi.updateConfig({
-        baseUrl,
-        authentication: authType !== 'none' ? {
-          type: authType,
-          key: authKey,
-        } : undefined,
+  try {
+    // Force basic auth with predefined credentials
+    enterpriseApi.updateConfig({
+      baseUrl,
+      authentication: authType !== 'none'
+        ? {
+            type: 'basic',
+            username: 'sm',
+            password: 'admin',
+          }
+        : undefined,
+    });
+
+    const response = await enterpriseApi.testConnection();
+
+    if (response.success) {
+      setConnectionStatus('success');
+
+      const initSuccess = await enterpriseApi.initialize(baseUrl, {
+        type: 'basic',
+        username: 'sm',
+        password: 'admin',
       });
 
-      // Test the connection
-      const response = await enterpriseApi.testConnection();
-      
-      if (response.success) {
-        setConnectionStatus('success');
-        // Initialize the API with the new configuration
-        const initSuccess = await enterpriseApi.initialize(baseUrl, {
-          type: authType,
-          key: authKey,
-        });
-        
-        if (initSuccess) {
-          Alert.alert('Success', 'Connection established successfully!');
-          onSuccess();
-        } else {
-          setConnectionStatus('error');
-          Alert.alert('Error', 'Failed to initialize API configuration');
-        }
+      if (initSuccess) {
+        Alert.alert('Success', 'Connection established successfully!');
+        onSuccess();
       } else {
         setConnectionStatus('error');
-        Alert.alert('Connection Failed', response.error || 'Unable to connect to the server');
+        Alert.alert('Error', 'Failed to initialize API configuration');
       }
-    } catch (error) {
+    } else {
       setConnectionStatus('error');
-      Alert.alert('Error', error instanceof Error ? error.message : 'Connection failed');
-    } finally {
-      setIsConnecting(false);
+      Alert.alert('Connection Failed', response.error || 'Unable to connect to the server');
     }
-  };
+  } catch (error) {
+    setConnectionStatus('error');
+    Alert.alert('Error', error instanceof Error ? error.message : 'Connection failed');
+  } finally {
+    setIsConnecting(false);
+  }
+};
 
   const getStatusIcon = () => {
     switch (connectionStatus) {
