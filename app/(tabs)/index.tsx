@@ -21,6 +21,7 @@ import {
   Wifi
 } from 'lucide-react-native';
 import { RealTimeAttendance } from '../../components/RealTimeAttendance';
+import { RealTimePunchWidget } from '../../components/RealTimePunchWidget';
 import { ConnectionSetup } from '../../components/ConnectionSetup';
 import { ModuleManager } from '../../components/ModuleManager';
 import { useEnterpriseSettings, useEnterpriseData } from '../../hooks/useEnterpriseData';
@@ -105,8 +106,8 @@ export default function DashboardScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Real-time Attendance Widget */}
-        <RealTimeAttendance userId={currentUserId} />
+        {/* Real-time Punch Widget */}
+        <RealTimePunchWidget userId={currentUserId} />
 
         {/* Quick Stats */}
         <View style={styles.statsContainer}>

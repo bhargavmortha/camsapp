@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Chrome as Home, Calendar, Clock, Receipt, User, Settings } from 'lucide-react-native';
+import { Chrome as Home, Calendar, Clock, Receipt, User, Settings, BarChart3 } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -56,6 +56,15 @@ export default function TabLayout() {
           title: 'Claims',
           tabBarIcon: ({ size, color }) => (
             <Receipt size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="punch-details"
+        options={{
+          title: 'Punch Details',
+          tabBarIcon: ({ size, color }) => (
+            <BarChart3 size={size} color={color} />
           ),
         }}
       />
