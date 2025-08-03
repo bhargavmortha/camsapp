@@ -272,3 +272,199 @@ export function ConnectionSetup({ visible, onClose, onSuccess }: ConnectionSetup
     </Modal>
   );
 }
+
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    width: '95%',
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    color: '#1F2937',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    maxHeight: 400,
+  },
+  section: {
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  sectionDescription: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#6B7280',
+    marginBottom: 20,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  inputContainer: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 16,
+    height: 48,
+    justifyContent: 'center',
+  },
+  input: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#1F2937',
+  },
+  inputHint: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
+    marginTop: 4,
+  },
+  authTypeContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  authTypeButton: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  authTypeButtonActive: {
+    backgroundColor: '#2563EB',
+  },
+  authTypeText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
+  },
+  authTypeTextActive: {
+    color: '#FFFFFF',
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 16,
+  },
+  statusIcon: {
+    marginRight: 12,
+  },
+  statusText: {
+    flex: 1,
+  },
+  statusTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+  statusDescription: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  docContainer: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 16,
+  },
+  docTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  codeBlock: {
+    backgroundColor: '#1F2937',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+  },
+  codeText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#E5E7EB',
+    lineHeight: 16,
+  },
+  docDescription: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#6B7280',
+    lineHeight: 16,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  testButton: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  testButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#6B7280',
+  },
+  saveButton: {
+    flex: 1,
+    backgroundColor: '#2563EB',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#E5E7EB',
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
+  },
+});
