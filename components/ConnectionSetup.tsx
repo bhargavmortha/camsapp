@@ -9,7 +9,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { X, Wifi, Check, AlertCircle, Settings } from 'lucide-react-native';
+import { X, Wifi, Check, CircleAlert as AlertCircle, Settings } from 'lucide-react-native';
 import { enterpriseApi } from '../services/enterpriseApi';
 import { LoadingSpinner } from './LoadingSpinner';
 

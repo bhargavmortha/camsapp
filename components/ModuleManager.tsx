@@ -8,18 +8,7 @@ import {
   Switch,
   Modal,
 } from 'react-native';
-import { 
-  Settings, 
-  X, 
-  Home, 
-  Clock, 
-  Calendar, 
-  Receipt, 
-  User, 
-  Shield,
-  Eye,
-  EyeOff 
-} from 'lucide-react-native';
+import { Settings, X, Chrome as Home, Clock, Calendar, Receipt, User, Shield, Eye, EyeOff } from 'lucide-react-native';
 import { AppModuleConfig } from '../config/api';
 import { useEnterpriseSettings } from '../hooks/useEnterpriseData';
 
