@@ -5,7 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { Clock, Activity, Zap, AlertTriangle } from 'lucide-react-native';
+import { Clock, Activity, Zap, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { usePunchData } from '../hooks/usePunchData';
 import { LoadingSpinner } from './LoadingSpinner';
 
